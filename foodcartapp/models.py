@@ -144,6 +144,13 @@ class Order(models.Model):
         max_length=200
     )
 
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+    def __str__(self):
+        return f'{self.phonenumber}, {self.address}'
+
 
 class OrderItem(models.Model):
     product = models.ForeignKey(
@@ -157,10 +164,17 @@ class OrderItem(models.Model):
         'Количество',
         validators=[MinValueValidator(1)]
     )
-    
+
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
         verbose_name='Заказ',
         related_name='items'
     )
+
+    class Meta:
+        verbose_name = 'Позиция заказа'
+        verbose_name_plural = 'Позиции в заказе'
+
+    def __str__(self):
+        return f'{self.product.name} - {self.quantity} шт.'
