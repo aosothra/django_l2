@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
 
 from .models import Order, OrderItem, Product
 
@@ -58,21 +59,38 @@ def product_list_api(request):
         'indent': 4,
     })
 
+
+class OrderItemSerializer(ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = OrderItemSerializer(many=True, allow_empty=False, write_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
+
+
 @api_view(['POST'])
 def register_order(request):
-    order_request = request.data
-    if not order_request:
-        return Response()
-        
+    request_serializer = OrderSerializer(data=request.data)
+    request_serializer.is_valid(raise_exception=True)
+
     order = Order.objects.create(
-        firstname=order_request['firstname'],
-        lastname=order_request['lastname'],
-        phonenumber=order_request['phonenumber'],
-        address=order_request['address']
+        firstname=request_serializer.validated_data['firstname'],
+        lastname=request_serializer.validated_data['lastname'],
+        phonenumber=request_serializer.validated_data['phonenumber'],
+        address=request_serializer.validated_data['address']
     )
-    for item in order_request['products']:
-        order.items.create(
-            product=Product.objects.get(id=item['product']),
-            quantity=item['quantity']
-            )
-    return Response()
+    order_items = [
+        OrderItem(order=order, **fields)
+        for fields in request_serializer.validated_data['products']
+    ]
+    OrderItem.objects.bulk_create(order_items)
+
+    response_serializer = OrderSerializer(order)
+
+    return Response(response_serializer.data)
