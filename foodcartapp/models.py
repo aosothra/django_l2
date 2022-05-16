@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -132,8 +133,6 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
-    objects = OrderQuerySet().as_manager()
-
     class Status(models.IntegerChoices):
         NEW = 0, _('Необработанный')
         FULFILLED = 1, _('Обработанный')
@@ -143,33 +142,48 @@ class Order(models.Model):
         'Имя',
         max_length=40
     )
-
     lastname = models.CharField(
         'Фамилия',
         max_length=40
     )
-
     phonenumber = PhoneNumberField(
         'Номер телефона'
     )
-
     address = models.CharField(
         'Адрес',
         max_length=200
     )
-
     status = models.SmallIntegerField(
         'Статус заказа',
         choices=Status.choices,
         default=Status.NEW,
         db_index=True
     )
-
     note = models.TextField(
         'Комментарий',
         blank=True,
         default=''
     )
+    created_on = models.DateTimeField(
+        'Дата/время создания',
+        null=False,
+        default=timezone.now,
+        db_index=True
+    )
+    confirmed_on = models.DateTimeField(
+        'Дата/время подтверждения',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+    fulfilled_on = models.DateTimeField(
+        'Дата/время исполнения',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
+    objects = OrderQuerySet().as_manager()
 
     class Meta:
         verbose_name = 'Заказ'

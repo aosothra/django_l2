@@ -17,9 +17,19 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    fields = (
+        ('phonenumber', 'firstname', 'lastname'),
+        ('address'),
+        ('created_on', 'confirmed_on', 'fulfilled_on'),
+        ('status'),
+        ('note'),
+    )
+    readonly_fields = [
+        'created_on',
+    ]    
     inlines = [
         OrderItemInline
-        ]
+    ]
 
     def response_post_save_change(self, request, obj):
         '''redirect back if request comes from manager view'''
