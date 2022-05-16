@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.shortcuts import reverse
 from django.templatetags.static import static
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.html import format_html
+from django.http import HttpResponseRedirect
 
 from .models import Order, OrderItem, Product
 from .models import ProductCategory
@@ -19,6 +21,16 @@ class OrderAdmin(admin.ModelAdmin):
         OrderItemInline
         ]
 
+    def response_post_save_change(self, request, obj):
+        '''redirect back if request comes from manager view'''
+
+        generic_response = super().response_post_save_change(request, obj)
+        redirect_url = request.GET.get('next')
+        return (
+            HttpResponseRedirect(redirect_url)
+            if redirect_url and url_has_allowed_host_and_scheme(redirect_url, None)
+            else generic_response
+        )
 
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
