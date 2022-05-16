@@ -1,4 +1,4 @@
-import json
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
@@ -86,7 +86,7 @@ def register_order(request):
         address=request_serializer.validated_data['address']
     )
     order_items = [
-        OrderItem(order=order, **fields)
+        OrderItem(order=order, **fields).set_relevant_price()
         for fields in request_serializer.validated_data['products']
     ]
     OrderItem.objects.bulk_create(order_items)
