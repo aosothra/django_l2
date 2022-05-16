@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
+from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -133,6 +134,11 @@ class OrderQuerySet(models.QuerySet):
 class Order(models.Model):
     objects = OrderQuerySet().as_manager()
 
+    class Status(models.IntegerChoices):
+        NEW = 0, _('Необработанный')
+        FULFILLED = 1, _('Обработанный')
+        CANCELED = 2, _('Отмененный')
+
     firstname = models.CharField(
         'Имя',
         max_length=40
@@ -150,6 +156,13 @@ class Order(models.Model):
     address = models.CharField(
         'Адрес',
         max_length=200
+    )
+
+    status = models.SmallIntegerField(
+        'Статус заказа',
+        choices=Status.choices,
+        default=Status.NEW,
+        db_index=True
     )
 
     class Meta:
