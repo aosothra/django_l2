@@ -74,6 +74,7 @@ class OrderSerializer(ModelSerializer):
         fields = ['id', 'firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     request_serializer = OrderSerializer(data=request.data)
