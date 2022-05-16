@@ -21,7 +21,7 @@ class OrderAdmin(admin.ModelAdmin):
         ('phonenumber', 'firstname', 'lastname'),
         ('address'),
         ('created_on', 'confirmed_on', 'fulfilled_on'),
-        ('status'),
+        ('status', 'payment_method'),
         ('note'),
     )
     readonly_fields = [

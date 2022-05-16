@@ -135,8 +135,13 @@ class OrderQuerySet(models.QuerySet):
 class Order(models.Model):
     class Status(models.IntegerChoices):
         NEW = 0, _('Необработанный')
-        FULFILLED = 1, _('Обработанный')
+        CONFIRMED = 1, _('Обработанный')
         CANCELED = 2, _('Отмененный')
+        FULFILLED = 3, _('Исполненный')
+    
+    class PaymentMethod(models.IntegerChoices):
+        CASH = 0, _('Наличные')
+        ONLINE = 1, _('Электронная')
 
     firstname = models.CharField(
         'Имя',
@@ -157,6 +162,12 @@ class Order(models.Model):
         'Статус заказа',
         choices=Status.choices,
         default=Status.NEW,
+        db_index=True
+    )
+    payment_method = models.SmallIntegerField(
+        'Способ оплаты',
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
         db_index=True
     )
     note = models.TextField(

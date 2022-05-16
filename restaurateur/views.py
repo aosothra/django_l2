@@ -97,12 +97,13 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.filter(status=Order.Status.NEW).price_sum()
+    orders = Order.objects.filter(status=Order.Status.NEW).price_sum().order_by('-created_on')
 
     orders_serialized = [
         {
             'id': order.id,
             'status': order.get_status_display(),
+            'payment_method': order.get_payment_method_display(),
             'price_total': order.price_total,
             'firstname':order.firstname,
             'lastname': order.lastname,
