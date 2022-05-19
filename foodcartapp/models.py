@@ -170,6 +170,13 @@ class Order(models.Model):
         default=PaymentMethod.CASH,
         db_index=True
     )
+    assigned_restaurant = models.ForeignKey(
+        Restaurant,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name='Готовится в ресторане',
+        related_name='orders'
+    )
     note = models.TextField(
         'Комментарий',
         blank=True,

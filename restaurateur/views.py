@@ -1,4 +1,6 @@
+from collections import defaultdict
 from django import forms
+from django.db.models import Prefetch
 from django.shortcuts import redirect, render
 from django.views import View
 from django.urls import reverse_lazy
@@ -8,7 +10,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
 
-from foodcartapp.models import Order, Product, Restaurant
+from foodcartapp.models import Order, OrderItem, Product, Restaurant, RestaurantMenuItem
 
 
 class Login(forms.Form):
@@ -97,24 +99,50 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.filter(status=Order.Status.NEW).price_sum().order_by('-created_on')
+    order_items_query = OrderItem.objects.select_related('product')
+    orders = (
+        Order.objects.filter(status__in=(Order.Status.NEW, Order.Status.CONFIRMED))
+        .price_sum()
+        .order_by('status', '-created_on')
+        .select_related('assigned_restaurant')
+        .prefetch_related(Prefetch('items', queryset=order_items_query, to_attr='itemset'))
+    )
 
-    orders_serialized = [
-        {
-            'id': order.id,
-            'status': order.get_status_display(),
-            'payment_method': order.get_payment_method_display(),
-            'price_total': order.price_total,
-            'firstname':order.firstname,
-            'lastname': order.lastname,
-            'phonenumber': order.phonenumber,
-            'address': order.address,
-            'note': order.note
-        }
-        for order in orders
-    ]
+    items_in_restaurants = defaultdict(list)
+    
+    for entry in RestaurantMenuItem.objects.select_related('restaurant').select_related('product').filter(availability=True):
+        items_in_restaurants[entry.restaurant].append(entry.product.id)
+
+    orders_serialized = []
+    for order in orders:
+        if order.assigned_restaurant is None:
+            order_items = [item.product.id for item in order.itemset]
+
+            restaurants = [
+                restaurant for restaurant, items in items_in_restaurants.items()
+                if set(items).issuperset(order_items)
+            ]
+
+            assignment = 'Доступно для: ' + ', '.join([restaurant.name for restaurant in restaurants])
+        else:
+            assignment = f'Готовится в {order.assigned_restaurant.name}'
+
+        orders_serialized.append(
+            {
+                'id': order.id,
+                'status': order.get_status_display(),
+                'payment_method': order.get_payment_method_display(),
+                'price_total': order.price_total,
+                'firstname':order.firstname,
+                'lastname': order.lastname,
+                'phonenumber': order.phonenumber,
+                'address': order.address,
+                'assignment': assignment,
+                'note': order.note
+            }
+        )
 
 
     return render(request, template_name='order_items.html', context={
-        'order_items': orders_serialized
+        'order_items': orders_serialized,
     })
