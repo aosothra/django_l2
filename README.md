@@ -60,6 +60,10 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
+Создайте файл `.env` в каталоге `star_burger/` со следующими настройками:
+
+- `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
+
 Запустите сервер:
 
 ```sh
@@ -142,6 +146,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте. Не стоит использовать значение по-умолчанию, **замените на своё**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+- `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
 
 ## Цели проекта
 
