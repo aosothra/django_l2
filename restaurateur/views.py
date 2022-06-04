@@ -11,6 +11,7 @@ from django.contrib.auth import views as auth_views
 
 
 from foodcartapp.models import Order, OrderItem, Product, Restaurant, RestaurantMenuItem
+from locations.models import Location
 
 
 class Login(forms.Form):
@@ -99,36 +100,32 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    order_items_query = OrderItem.objects.select_related('product')
     orders = (
         Order.objects.filter(status__in=(Order.Status.NEW, Order.Status.CONFIRMED))
         .price_sum()
         .order_by('status', '-created_on')
         .select_related('assigned_restaurant')
-        .prefetch_related(Prefetch('items', queryset=order_items_query, to_attr='itemset'))
+        .prefetch_related(
+            Prefetch(
+                'items', 
+                queryset=OrderItem.objects.select_related('product'), 
+                to_attr='itemset')
+            )
     )
+
+    relevant_addresses = set([order.address for order in orders])
 
     items_in_restaurants = defaultdict(list)
     
     for entry in RestaurantMenuItem.objects.select_related('restaurant').select_related('product').filter(availability=True):
+        relevant_addresses.add(entry.restaurant.address)
         items_in_restaurants[entry.restaurant].append(entry.product.id)
+
+    relevant_locations = Location.objects.get_for_addresses(relevant_addresses)
 
     orders_serialized = []
     for order in orders:
-        if order.assigned_restaurant is None:
-            order_items = [item.product.id for item in order.itemset]
-
-            restaurants = [
-                restaurant for restaurant, items in items_in_restaurants.items()
-                if set(items).issuperset(order_items)
-            ]
-
-            assignment = 'Доступно для: ' + ', '.join([restaurant.name for restaurant in restaurants])
-        else:
-            assignment = f'Готовится в {order.assigned_restaurant.name}'
-
-        orders_serialized.append(
-            {
+        order_serialized = {
                 'id': order.id,
                 'status': order.get_status_display(),
                 'payment_method': order.get_payment_method_display(),
@@ -137,12 +134,37 @@ def view_orders(request):
                 'lastname': order.lastname,
                 'phonenumber': order.phonenumber,
                 'address': order.address,
-                'assignment': assignment,
+                'avaliable_for': None,
+                'assigned_to': None,
                 'note': order.note
             }
-        )
+
+        if order.assigned_restaurant is not None:
+            order_serialized['assigned_to'] = order.assigned_restaurant.name
+        else:
+            order_location = relevant_locations.get(order.address)
+
+            order_items = [item.product.id for item in order.itemset]
+
+            avaliable_restaurants = []
+
+            for restaurant, items in items_in_restaurants.items():
+                if not set(items).issuperset(order_items):
+                    continue
+
+                restaurant_location = relevant_locations.get(restaurant.address)
+                distance = order_location.distance_to(restaurant_location)
+                distance = round(distance, 2) if distance else '??'
+                avaliable_restaurants.append(
+                    {'name': restaurant.name, 'distance': distance}
+                )
+
+            order_serialized['avaliable_for'] = avaliable_restaurants
+
+
+        orders_serialized.append(order_serialized)
 
 
     return render(request, template_name='order_items.html', context={
-        'order_items': orders_serialized,
+        'orders': orders_serialized,
     })
