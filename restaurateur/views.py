@@ -1,14 +1,14 @@
 from collections import defaultdict
-from django import forms
-from django.db.models import Prefetch
-from django.shortcuts import redirect, render
-from django.views import View
-from django.urls import reverse_lazy
-from django.contrib.auth.decorators import user_passes_test
+from operator import itemgetter
 
+from django import forms
+from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
+from django.db.models import Prefetch
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views import View
 
 from foodcartapp.models import Order, OrderItem, Product, Restaurant, RestaurantMenuItem
 from locations.models import Location
@@ -100,6 +100,9 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    orders_serialized = []
+    items_in_restaurants = defaultdict(list)
+
     orders = (
         Order.objects.filter(status__in=(Order.Status.NEW, Order.Status.CONFIRMED))
         .price_sum()
@@ -112,18 +115,14 @@ def view_orders(request):
                 to_attr='itemset')
             )
     )
+    relevant_addresses = set([order.address for order in orders if order.assigned_restaurant is None])
 
-    relevant_addresses = set([order.address for order in orders])
-
-    items_in_restaurants = defaultdict(list)
-    
     for entry in RestaurantMenuItem.objects.select_related('restaurant').select_related('product').filter(availability=True):
         relevant_addresses.add(entry.restaurant.address)
         items_in_restaurants[entry.restaurant].append(entry.product.id)
 
     relevant_locations = Location.objects.get_for_addresses(relevant_addresses)
 
-    orders_serialized = []
     for order in orders:
         order_serialized = {
                 'id': order.id,
@@ -159,7 +158,7 @@ def view_orders(request):
                     {'name': restaurant.name, 'distance': distance}
                 )
 
-            order_serialized['avaliable_for'] = avaliable_restaurants
+            order_serialized['avaliable_for'] = sorted(avaliable_restaurants, key=itemgetter('distance'))
 
 
         orders_serialized.append(order_serialized)

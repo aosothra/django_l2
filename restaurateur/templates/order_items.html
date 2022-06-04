@@ -41,7 +41,7 @@
           <td>
             <details>
               <summary>Доступно для</summary>
-              <ul>
+              <ul style="padding: 0px;">
                 {% for restaurant in order.avaliable_for %}
                   <li>{{ restaurant.name }} - {{ restaurant.distance }} км</li>
                 {% endfor %}
