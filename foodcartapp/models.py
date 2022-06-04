@@ -140,8 +140,9 @@ class Order(models.Model):
         FULFILLED = 3, _('Исполненный')
     
     class PaymentMethod(models.IntegerChoices):
-        CASH = 0, _('Наличные')
-        ONLINE = 1, _('Электронная')
+        NOT_SELECTED = 0, _('Не выбрано')
+        CASH = 1, _('Наличные')
+        ONLINE = 2, _('Электронная')
 
     firstname = models.CharField(
         'Имя',
@@ -167,12 +168,13 @@ class Order(models.Model):
     payment_method = models.SmallIntegerField(
         'Способ оплаты',
         choices=PaymentMethod.choices,
-        default=PaymentMethod.CASH,
+        default=PaymentMethod.NOT_SELECTED,
         db_index=True
     )
     assigned_restaurant = models.ForeignKey(
         Restaurant,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         verbose_name='Готовится в ресторане',
         related_name='orders'
