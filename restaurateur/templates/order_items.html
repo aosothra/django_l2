@@ -40,8 +40,8 @@
         {% else %}
           <td>
             <details>
-              <summary>Доступно для</summary>
-              <ul style="padding: 0px;">
+              <summary style="display: list-item">Доступно для</summary>
+              <ul style="padding: 0px; ">
                 {% for restaurant in order.avaliable_for %}
                   {% if restaurant.distance >= 0 %}
                     <li>{{ restaurant.name }} - {{ restaurant.distance }} км</li>
