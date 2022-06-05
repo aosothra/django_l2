@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.shortcuts import reverse
 from django.templatetags.static import static
@@ -15,8 +16,26 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
 
 
+class OrderAdminForm(forms.ModelForm):    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Make sure to only list restaurants with matching avaliable products
+        order_items = [item.product.id for item in self.instance.items.all()]
+        restaurants_with_items = RestaurantMenuItem.objects.get_restaurants_with_items()
+
+        avaliable_restaurants = [
+            restaurant.id for restaurant, items in restaurants_with_items.items()
+            if set(items).issuperset(order_items)
+        ]
+
+        self.fields['assigned_restaurant'].queryset = Restaurant.objects.filter(id__in=avaliable_restaurants)
+
+        
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    form = OrderAdminForm
+
     fields = (
         ('phonenumber', 'firstname', 'lastname'),
         ('address'),
@@ -32,7 +51,7 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     def response_post_save_change(self, request, obj):
-        '''redirect back if request comes from manager view'''
+        # Redirect back if request comes from manager view
 
         generic_response = super().response_post_save_change(request, obj)
         redirect_url = request.GET.get('next')

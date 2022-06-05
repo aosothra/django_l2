@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator
@@ -97,6 +98,25 @@ class Product(models.Model):
         return self.name
 
 
+class RestaurantMenuItemQuerySet(models.QuerySet):
+    def get_restaurants_with_items(self):
+        '''Build associative dictionary with restaurants
+        and corresponding list of products
+        '''
+        restaurants_with_items = defaultdict(list)
+
+        restaurants_with_items_query = (
+            self.select_related('restaurant')
+            .select_related('product')
+            .filter(availability=True)
+        )
+
+        for entry in restaurants_with_items_query:
+            restaurants_with_items[entry.restaurant].append(entry.product.id)
+
+        return restaurants_with_items
+
+
 class RestaurantMenuItem(models.Model):
     restaurant = models.ForeignKey(
         Restaurant,
@@ -115,6 +135,8 @@ class RestaurantMenuItem(models.Model):
         default=True,
         db_index=True
     )
+
+    objects = RestaurantMenuItemQuerySet().as_manager()
 
     class Meta:
         verbose_name = 'пункт меню ресторана'
