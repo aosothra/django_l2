@@ -101,7 +101,6 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders_serialized = []
-    items_in_restaurants = defaultdict(list)
 
     orders = (
         Order.objects.filter(status__in=(Order.Status.NEW, Order.Status.CONFIRMED))
@@ -117,9 +116,9 @@ def view_orders(request):
     )
     relevant_addresses = set([order.address for order in orders if order.assigned_restaurant is None])
 
-    for entry in RestaurantMenuItem.objects.select_related('restaurant').select_related('product').filter(availability=True):
-        relevant_addresses.add(entry.restaurant.address)
-        items_in_restaurants[entry.restaurant].append(entry.product.id)
+    restaurants_with_items = RestaurantMenuItem.objects.get_restaurants_with_items()
+    for restaurant in restaurants_with_items.keys():
+        relevant_addresses.add(restaurant.address)
 
     relevant_locations = Location.objects.get_for_addresses(relevant_addresses)
 
@@ -147,7 +146,7 @@ def view_orders(request):
 
             avaliable_restaurants = []
 
-            for restaurant, items in items_in_restaurants.items():
+            for restaurant, items in restaurants_with_items.items():
                 if not set(items).issuperset(order_items):
                     continue
 
