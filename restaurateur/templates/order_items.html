@@ -43,7 +43,11 @@
               <summary>Доступно для</summary>
               <ul style="padding: 0px;">
                 {% for restaurant in order.avaliable_for %}
-                  <li>{{ restaurant.name }} - {{ restaurant.distance }} км</li>
+                  {% if restaurant.distance >= 0 %}
+                    <li>{{ restaurant.name }} - {{ restaurant.distance }} км</li>
+                  {% else %}
+                    <li>{{ restaurant.name }} - ?? км</li>
+                  {% endif %}
                 {% endfor %}
               </ul>
             </details>

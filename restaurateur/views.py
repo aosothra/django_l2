@@ -153,7 +153,7 @@ def view_orders(request):
 
                 restaurant_location = relevant_locations.get(restaurant.address)
                 distance = order_location.distance_to(restaurant_location)
-                distance = round(distance, 2) if distance else '??'
+                distance = round(distance, 3) if distance is not None else -1
                 avaliable_restaurants.append(
                     {'name': restaurant.name, 'distance': distance}
                 )
