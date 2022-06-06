@@ -104,7 +104,7 @@ def view_orders(request):
 
     orders = (
         Order.objects.filter(status__in=(Order.Status.NEW, Order.Status.CONFIRMED))
-        .price_sum()
+        .annotate_price_total()
         .order_by('status', '-created_on')
         .select_related('assigned_restaurant')
         .prefetch_related(
