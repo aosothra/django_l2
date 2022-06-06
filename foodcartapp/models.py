@@ -16,6 +16,7 @@ class Restaurant(models.Model):
         'адрес',
         max_length=100,
         blank=True,
+        db_index=True
     )
     contact_phone = models.CharField(
         'контактный телефон',
@@ -175,11 +176,13 @@ class Order(models.Model):
         max_length=40
     )
     phonenumber = PhoneNumberField(
-        'Номер телефона'
+        'Номер телефона',
+        db_index=True
     )
     address = models.CharField(
         'Адрес',
-        max_length=200
+        max_length=200,
+        db_index=True
     )
     status = models.SmallIntegerField(
         'Статус заказа',
