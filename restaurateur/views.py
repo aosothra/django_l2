@@ -107,20 +107,12 @@ def view_orders(request):
         .annotate_price_total()
         .order_by('status', '-created_on')
         .select_related('assigned_restaurant')
-        .prefetch_related(
-            Prefetch(
-                'items', 
-                queryset=OrderItem.objects.select_related('product'), 
-                to_attr='itemset')
-            )
+        .include_avaliable_restaurants()
     )
-    relevant_addresses = set([order.address for order in orders if order.assigned_restaurant is None])
 
-    restaurants_with_items = RestaurantMenuItem.objects.get_restaurants_with_items()
-    for restaurant in restaurants_with_items.keys():
-        relevant_addresses.add(restaurant.address)
-
-    relevant_locations = Location.objects.get_for_addresses(relevant_addresses)
+    order_addresses = set([order.address for order in orders if order.assigned_restaurant is None])
+    restaurant_addresses = set(Restaurant.objects.values_list('address', flat=True))
+    relevant_locations = Location.objects.get_for_addresses(order_addresses.union(restaurant_addresses))
 
     for order in orders:
         order_serialized = {
@@ -140,24 +132,18 @@ def view_orders(request):
         if order.assigned_restaurant is not None:
             order_serialized['assigned_to'] = order.assigned_restaurant.name
         else:
+            restaurants_with_distance = []
             order_location = relevant_locations.get(order.address)
-
-            order_items = [item.product.id for item in order.itemset]
-
-            avaliable_restaurants = []
-
-            for restaurant, items in restaurants_with_items.items():
-                if not set(items).issuperset(order_items):
-                    continue
-
+            
+            for restaurant in order.avaliable_restaurants:
                 restaurant_location = relevant_locations.get(restaurant.address)
                 distance = order_location.distance_to(restaurant_location)
                 distance = round(distance, 3) if distance is not None else -1
-                avaliable_restaurants.append(
+                restaurants_with_distance.append(
                     {'name': restaurant.name, 'distance': distance}
                 )
 
-            order_serialized['avaliable_for'] = sorted(avaliable_restaurants, key=itemgetter('distance'))
+            order_serialized['avaliable_for'] = sorted(restaurants_with_distance, key=itemgetter('distance'))
 
 
         orders_serialized.append(order_serialized)

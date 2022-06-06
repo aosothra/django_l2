@@ -1,6 +1,7 @@
 from collections import defaultdict
+
 from django.db import models
-from django.db.models import Sum, F
+from django.db.models import Prefetch, Sum, F
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -151,6 +152,24 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
+    def include_avaliable_restaurants(self):
+        orders = self.prefetch_related(
+            Prefetch(
+                'items', 
+                queryset=OrderItem.objects.select_related('product'), 
+                to_attr='itemset')
+            )
+
+        restaurants_with_items = RestaurantMenuItem.objects.get_restaurants_with_items()
+
+        for order in orders:
+            order.avaliable_restaurants = [
+                restaurant for restaurant, items in restaurants_with_items.items()
+                if set(items).issuperset([item.product.id for item in order.itemset])
+            ]
+        
+        return orders
+
     def annotate_price_total(self):
         return self.annotate(price_total=Sum(F('items__price') * F('items__quantity')))
 
