@@ -206,8 +206,7 @@ class Order(models.Model):
     )
     note = models.TextField(
         'Комментарий',
-        blank=True,
-        default=''
+        blank=True
     )
     created_on = models.DateTimeField(
         'Дата/время создания',
@@ -250,8 +249,6 @@ class OrderItem(models.Model):
         'цена за шт',        
         max_digits=8,
         decimal_places=2,
-        null=False,
-        blank=False,
         validators=[MinValueValidator(0)]
     )
 

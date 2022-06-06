@@ -55,7 +55,6 @@ class Location(models.Model):
         'Адрес',
         unique=True,
         max_length=200,
-        blank=False,
         db_index=True
     )
 
