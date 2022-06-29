@@ -60,9 +60,13 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
+Зарегистрируйтесь в [Rollbar](https://docs.rollbar.com/docs/getting-started) и создайте новый проект.
+
 Создайте файл `.env` в каталоге `star_burger/` со следующими настройками:
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Подробнее можно прочитать в [оф. документации Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY). **Обязательно к заполнению**.
 - `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
+- `ROLLBAR_ACCESS_TOKEN` - уникальный токен Вашего проекта в системе Rollbar. Можно найти на странице управления проектом. **Обязательно к заполнению**.
+
 
 Запустите сервер:
 
@@ -147,6 +151,8 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Подробнее можно прочитать в [оф. документации Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY). **Обязательно к заполнению**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
+- `ROLLBAR_ACCESS_TOKEN` - уникальный токен Вашего проекта в системе Rollbar. Можно найти на странице управления проектом. **Обязательно к заполнению**.
+- `ROLLBAR_ENVIRONMENT` - название окружения в котором запущен проект для отображения в системе Rollbar. Указывайте так, чтобы потом легко было понять какой инстанс сыпит ошибки. **По умолчанию = dev**
 
 ## Цели проекта
 
