@@ -54,19 +54,21 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
-
-```sh
-python manage.py migrate
-```
+Данный проект использует PostgreSQL в качестве СУБД. Целесообразно ее [установить](https://www.postgresql.org/download/). Создайте новую базу данных и привелегированного пользователя для редактирования данных в вашей базе. 
 
 Зарегистрируйтесь в [Rollbar](https://docs.rollbar.com/docs/getting-started) и создайте новый проект.
 
 Создайте файл `.env` в каталоге `star_burger/` со следующими настройками:
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Подробнее можно прочитать в [оф. документации Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY). **Обязательно к заполнению**.
+- `POSTGRESQL_DB_URL` - адрес для подключения к вашей базе данных в формате `postgres://username:password@localhost/dbname`, где `username`, `password` - имя пользователя и пароль для доступа к базе данных, а `dbname` - имя созданной базы данных.**Обязательно к заполнению**.
 - `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
 - `ROLLBAR_ACCESS_TOKEN` - уникальный токен Вашего проекта в системе Rollbar. Можно найти на странице управления проектом. **Обязательно к заполнению**.
 
+Проведите миграцию моделей для свежей БД следующей командой:
+
+```sh
+python manage.py migrate
+```
 
 Запустите сервер:
 
@@ -150,6 +152,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Подробнее можно прочитать в [оф. документации Django](https://docs.djangoproject.com/en/3.2/ref/settings/#std-setting-SECRET_KEY). **Обязательно к заполнению**.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
+- `POSTGRESQL_DB_URL` - адрес для подключения к вашей базе данных в формате `postgres://username:password@localhost/dbname`, где `username`, `password` - имя пользователя и пароль для доступа к базе данных, а `dbname` - имя созданной базы данных.**Обязательно к заполнению**.
 - `GEO_API_KEY` — уникальный ключ для доступа к [Yandex Geocoder API](https://yandex.ru/dev/maps/geocoder/). Он необходим для получения гео данных по адресам при менеджменте заказов. Зарегистрировать и получить ключ можно [здесь](https://developer.tech.yandex.ru/services/). **Обязательно к заполнению**.
 - `ROLLBAR_ACCESS_TOKEN` - уникальный токен Вашего проекта в системе Rollbar. Можно найти на странице управления проектом. **Обязательно к заполнению**.
 - `ROLLBAR_ENVIRONMENT` - название окружения в котором запущен проект для отображения в системе Rollbar. Указывайте так, чтобы потом легко было понять какой инстанс сыпит ошибки. **По умолчанию = development**
