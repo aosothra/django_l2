@@ -45,9 +45,13 @@ MIDDLEWARE = [
     'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
+from git import Repo
+local_branch = Repo(path=BASE_DIR).active_branch.name
+
 ROLLBAR = {
     'access_token': env('ROLLBAR_ACCESS_TOKEN'),
     'environment': env('ROLLBAR_ENVIRONMENT', 'development'),
+    'branch': local_branch,
     'root': BASE_DIR,
 }
 import rollbar
