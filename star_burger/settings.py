@@ -1,8 +1,10 @@
 import os
 
 import dj_database_url
+import rollbar
 
 from environs import Env
+from git import Repo
 
 
 env = Env()
@@ -45,17 +47,19 @@ MIDDLEWARE = [
     'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 ]
 
-from git import Repo
-local_branch = Repo(path=BASE_DIR).active_branch.name
+ROLLBAR_ACCESS_TOKEN = env('ROLLBAR_ACCESS_TOKEN')
+ROLLBAR_ENVIRONMENT = env('ROLLBAR_ENVIRONMENT', 'development')
 
-ROLLBAR = {
-    'access_token': env('ROLLBAR_ACCESS_TOKEN'),
-    'environment': env('ROLLBAR_ENVIRONMENT', 'development'),
-    'branch': local_branch,
-    'root': BASE_DIR,
-}
-import rollbar
-rollbar.init(**ROLLBAR)
+if ROLLBAR_ACCESS_TOKEN:
+    local_branch = Repo(path=BASE_DIR).active_branch.name
+
+    ROLLBAR = {
+        'access_token': ROLLBAR_ACCESS_TOKEN,
+        'environment': ROLLBAR_ENVIRONMENT,
+        'branch': local_branch,
+        'root': BASE_DIR,
+    }
+    rollbar.init(**ROLLBAR)
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rollbar.contrib.django_rest_framework.post_exception_handler'
